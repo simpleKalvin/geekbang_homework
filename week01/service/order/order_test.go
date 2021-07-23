@@ -6,6 +6,7 @@ import (
 )
 
 func TestOrder(t *testing.T) {
-	order := New(1)
+	order, err := New(2)
+	fmt.Println(err)
 	fmt.Println(order)
 }

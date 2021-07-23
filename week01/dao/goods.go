@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
+	"github.com/simpleKalvin/geekbang_homework/week01/errs"
 )
 
 type Goods struct {
@@ -28,11 +29,12 @@ func GetOne(id int) (*Goods, error) {
 		}
 	}(db)
 	goods := &Goods{}
-	sql := "select * from goods where Id = ? limit 1"
-	err = db.QueryRow(sql, id).Scan(&goods.Id, &goods.Name, &goods.Amount, &goods.Money)
+	sqlString := "select * from goods where Id = ? limit 1"
+	err = db.QueryRow(sqlString, id).Scan(&goods.Id, &goods.Name, &goods.Amount, &goods.Money)
 
-	if err != nil {
-		return nil, errors.Wrapf(err, fmt.Sprintf("sql:%s, error: %v", sql, err))
+	if errors.Is(err, sql.ErrNoRows) {
+		errsData := new(errs.DataNotFound)
+		return nil, errors.Wrapf(err, fmt.Sprintf("sqlString:%s, error: %v", sqlString, errsData))
 	}
 
 	return goods, nil
