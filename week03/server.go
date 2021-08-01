@@ -56,7 +56,8 @@ func (this Server) Start(ctx context.Context) error {
 		case <-ctx.Done():
 			wg.Add(1)
 			//使用context控制srv.Shutdown的超时时间
-			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+			// 定时cancel兜底
 			defer cancel()
 			err := srv.Shutdown(ctx)
 			if err != nil {
