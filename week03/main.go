@@ -9,5 +9,6 @@ func main() {
 	// 信号处理
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 }

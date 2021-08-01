@@ -6,7 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
-	"github.com/simpleKalvin/geekbang_homework/week02/errs"
+	"github.com/simpleKalvin/geekbang_homework/week01/errs"
 )
 
 type Goods struct {

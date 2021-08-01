@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	_ "sync"
 	"syscall"
 )
 
@@ -39,30 +40,30 @@ func (this App) Run() error {
 		fmt.Println("server starting...")
 		return server.Start(ctx)
 	})
+	wg.Wait()
 
 	// 信号处理
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGUSR1, syscall.SIGUSR2)
 	eg.Go(func() error {
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-c:
-				fmt.Println("服务开始停止")
-				return this.Stop()
-			}
+		select {
+		case <-ctx.Done():
+			fmt.Println("协程开始退出")
+			return ctx.Err()
+		case <-c:
+			fmt.Println("服务开始停止")
+			return this.Stop()
 		}
 	})
-
-	if err := eg.Wait(); err != nil {
+	err := eg.Wait();
+	fmt.Println(err)
+	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (this App) Stop() error {
 	this.cancel()
-	return nil
+	return this.ctx.Err()
 }

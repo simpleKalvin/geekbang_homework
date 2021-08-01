@@ -9,11 +9,12 @@ import (
 )
 
 type Server struct {
+	addr string
 }
 
 func NewServer() *Server {
 	return &Server{
-
+		addr: ":9080",
 	}
 }
 
@@ -35,24 +36,46 @@ func (this Server) SolveData(i int, wg *sync.WaitGroup)  {
 func (this Server) Start(ctx context.Context) error {
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		wg := &sync.WaitGroup{}
-
 		wg.Add(3)
 		go this.SolveData(1, wg)
 		go this.SolveData(2, wg)
 		go this.SolveData(3, wg)
 		wg.Wait()
+		return
 	})
-
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		this.Stop(ctx)
+	//使用默认路由创建 http server
+	srv := http.Server{
+		Addr:    this.addr,
+		Handler: http.DefaultServeMux,
 	}
-
-	for {
+	//使用WaitGroup同步Goroutine
+	var wg sync.WaitGroup
+	go func() {
 		select {
-		case <- ctx.Done():
-			return ctx.Err()
+		// 监听上下文退出信号
+		case <-ctx.Done():
+			wg.Add(1)
+			//使用context控制srv.Shutdown的超时时间
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+			err := srv.Shutdown(ctx)
+			if err != nil {
+				fmt.Println(err)
+			}
+			wg.Done()
 		}
+	}()
+
+	fmt.Println("listening at " + this.addr)
+	err := srv.ListenAndServe()
+
+	fmt.Println("waiting for the remaining connections to finish...")
+	wg.Wait()
+	if err != nil && err != http.ErrServerClosed {
+		panic(err)
 	}
+	fmt.Println("gracefully shutdown the http server...")
+	return err
 }
 
 // Stop
@@ -63,10 +86,10 @@ func (this Server) Start(ctx context.Context) error {
  * @return error
  */
 func (this Server) Stop(ctx context.Context) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		}
+	fmt.Println("触发server 退出")
+	select {
+	case <-ctx.Done():
+		fmt.Println("收到 context cancel")
+		return ctx.Err()
 	}
 }
