@@ -6,10 +6,10 @@ import (
 )
 
 func main() {
-	order, err := order.New(1)
+	orders, err := order.New(1)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(order)
+	fmt.Println(orders)
 }

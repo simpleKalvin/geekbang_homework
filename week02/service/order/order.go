@@ -3,7 +3,7 @@ package order
 import (
 	"database/sql"
 	"github.com/pkg/errors"
-	"github.com/simpleKalvin/geekbang_homework/week01/dao"
+	"github.com/simpleKalvin/geekbang_homework/week02/dao"
 )
 
 func New(id int) (*dao.Order, error) {
