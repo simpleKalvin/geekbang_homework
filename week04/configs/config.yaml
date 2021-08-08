@@ -1,6 +1,6 @@
 server:
   http:
     addr: 0.0.0.0
-    port: 8080
+    port: 8099
     read_timeout: 1s
     write_timeout: 1s

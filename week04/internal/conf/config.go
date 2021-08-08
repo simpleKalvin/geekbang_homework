@@ -1,9 +1,11 @@
 package conf
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"path"
+	"reflect"
+	"runtime"
 	"sync/atomic"
 )
 
@@ -13,7 +15,7 @@ var (
 
 type Config interface {
 	Load() error
-	Values(key string) values
+	Values(key string) string
 }
 
 type values struct {
@@ -21,38 +23,58 @@ type values struct {
 }
 
 type config struct {
-	httpServer
+	values
+	Server server `yaml:"server"`
+}
+
+
+type server struct {
+	HttpServer httpServer `yaml:"http"`
 }
 
 type httpServer struct {
-	host string `yaml:"addr"`
-	port string	`yaml:"port"`
-	readTime string `yaml:"read_time"`
-	writeTime string `yaml:"write_time"`
+	Host string `yaml:"addr"`
+	Port string	`yaml:"port"`
+	ReadTimeout string `yaml:"read_timeout"`
+	WriteTimeout string `yaml:"write_timeout"`
 }
 
 func (this *config) Load() error {
 	// load the file
-	yamlPath := "../configs/config.yaml"
+	yamlPath := "configs/config.yaml"
+	yamlPath = getCurrentAbPathByCaller() +"/../../"+ yamlPath
 	yamlConfig, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
 		panic(yamlPath+" not found")
 	}
-	err = yaml.Unmarshal(yamlConfig, this.httpServer)
+	err = yaml.Unmarshal(yamlConfig, this)
+	//values := reflect.ValueOf(this.Server.HttpServer)
+	this.values.Store(this.Server.HttpServer)
 	if err != nil {
 		panic("unmarshal failed")
 	}
-	fmt.Println(this.httpServer.port)
 	return nil
 }
 
-func (this *config) Values(key string) values {
-	fmt.Println(this.httpServer)
-	return values{}
+func (this *config) Values(key string) string {
+	// 通过atomic获取数据
+	dataValues := this.values.Load().(httpServer)
+	// reflection
+	refValue := reflect.ValueOf(dataValues)
+	return refValue.FieldByName(key).String()
 }
 
 func NewConfig() Config {
 	appConfig := config{}
 	appConfig.Load()
 	return &appConfig
+}
+
+func getCurrentAbPathByCaller() string {
+	var abPath string
+	_, filename, _, ok := runtime.Caller(0)
+	if ok {
+		abPath = path.Dir(filename)
+	}
+	return abPath
 }

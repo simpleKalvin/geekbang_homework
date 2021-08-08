@@ -1,0 +1,15 @@
+syntax = "proto3";
+option go_package = "api/order/v1";
+
+message OrderRequest {
+  int64 UserId = 1;
+  int64 GoodsId = 2;
+}
+
+message OrderReply{
+  string OrderId = 1;
+}
+
+service Order{
+  rpc Order(OrderRequest) returns (OrderReply) {}
+}

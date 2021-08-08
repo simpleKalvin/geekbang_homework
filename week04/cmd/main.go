@@ -5,21 +5,45 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/simpleKalvin/geekbang_homework/week04/internal/conf"
+	goods2 "github.com/simpleKalvin/geekbang_homework/week04/internal/data/goods"
+	user2 "github.com/simpleKalvin/geekbang_homework/week04/internal/data/user"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
 
+var (
+	configs conf.Config
+)
+
 func init() {
-	conf.NewConfig()
+	configs = conf.NewConfig()
 }
 
 func main() {
-	r := gin.Default()
-	server := &http.Server{
-		Addr:         ":8080",
+	r := gin.New()
+
+	r.POST("/", func(c *gin.Context) {
+		user_id, _ := strconv.ParseInt(c.PostForm("user_id"), 10, 64)
+		goods_id, _ := strconv.ParseInt(c.PostForm("goods_id"), 10, 64)
+		//user := user2.NewUser(user_id)
+		//goods := goods2.NewGoods(goods_id)
+		//order := biz.NewOrder(user, goods)
+		order, err := InitOrder(goods2.GoodsId(goods_id), user2.UserId(user_id))
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(order)
+	})
+
+	host := configs.Values("Host")
+	port := configs.Values("Port")
+	listenHost := host + ":" + port
+		server := &http.Server{
+		Addr:         listenHost,
 		Handler:      r,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,

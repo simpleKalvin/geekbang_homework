@@ -1,0 +1,20 @@
+syntax = "proto3";
+option go_package = "api/order/v1";
+
+//option go_package = "pb;pb";
+
+// 进入
+message ComeIn {
+  string name = 1; 	// 名称
+  string trait = 2;	// ip
+}
+
+// 离开
+message GetOut {
+  string name = 1;	// 名称
+  string ip 	= 2;	// ip
+}
+
+service Web {
+  rpc  WebService(ComeIn) returns (GetOut);
+}
