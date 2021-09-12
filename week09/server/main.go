@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"protocol"
 	"io"
 	"net"
 )
@@ -34,6 +35,29 @@ func tcpFixDelimiterServer(conn net.Conn) {
 	}
 }
 
+func tcpFrameServer(conn net.Conn) {
+	fmt.Println("server, length field based frame decoder")
+	var buf = make([]byte, 0)
+	var readerChannel = make(chan []byte, 16)
+	go func() {
+		select {
+		case data := <-readerChannel:
+			fmt.Println("channel=", string(data))
+		}
+	}()
+
+	buffer := make([]byte, 1024)
+	for {
+		n, err := conn.Read(buffer)
+		if err != nil {
+			fmt.Println(conn.RemoteAddr().String(), " connection error: ", err)
+			return
+		}
+
+		protocol.Unpack(append(buf, buffer[:n]...), readerChannel)
+	}
+}
+
 func main() {
 	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
@@ -46,6 +70,7 @@ func main() {
 			panic(err)
 		}
 		//go tcpFixLenServer(conn)
-		go tcpFixDelimiterServer(conn)
+		//go tcpFixDelimiterServer(conn)
+		go tcpFrameServer(conn)
 	}
 }

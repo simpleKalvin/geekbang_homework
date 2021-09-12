@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"protocol"
 	"net"
 )
 const (
@@ -43,6 +44,19 @@ func tcpFixDelimiterClient(conn net.Conn) {
 	}
 }
 
+func tcpFrameDecode(conn net.Conn) {
+	fmt.Println("tcp LengthFieldBasedFrameDecoder")
+	for i := 0; i < 1000; i++ {
+		sendMsg := "{\"test01\":1,\"test02\",2}"
+		_, err := conn.Write(protocol.Packet([]byte(sendMsg)))
+		if err != nil {
+			fmt.Println(err, ",err index=", i)
+			return
+		}
+		fmt.Println("send over once")
+	}
+}
+
 func main() {
 	conn, err := net.Dial("tcp", ":8080")
 	if err != nil {
@@ -50,5 +64,6 @@ func main() {
 	}
 	defer conn.Close()
 	//tcpFixLenClient(conn)
-	tcpFixDelimiterClient(conn)
+	//tcpFixDelimiterClient(conn)
+	tcpFrameDecode(conn)
 }
